@@ -56,7 +56,7 @@ export interface PostalAddress {
 
 export interface QrCodeEntry {
   id: string;
-  format?: string; // e.g. "qr" | "code128"
+  format?: string | undefined; // e.g. "qr" or "code128"
   detected: boolean;
   content?: string | undefined;
   side?: CardSide | undefined;
