@@ -7,9 +7,9 @@ const ACCEPTED = "image/jpeg,image/png,image/webp,image/heic,image/heif";
 
 interface ImageSourcePickerProps {
   onSelect: (image: CapturedImage) => void;
-  onRejected?: (reason: string) => void;
-  label?: string;
-  compact?: boolean;
+  onRejected?: (reason: string) => void | undefined;
+  label?: string | undefined;
+  compact?: boolean | undefined;
 }
 
 export function ImageSourcePicker({

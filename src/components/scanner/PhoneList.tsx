@@ -16,7 +16,7 @@ const TYPES: PhoneType[] = ["mobile", "direct", "office", "home", "fax", "other"
 
 interface PhoneListProps {
   phones: PhoneEntry[];
-  confidence?: ConfidenceMap;
+  confidence?: ConfidenceMap | undefined;
   onChange: (phones: PhoneEntry[]) => void;
 }
 

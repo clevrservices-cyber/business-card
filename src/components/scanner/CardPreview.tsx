@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 interface CardPreviewProps {
   label: string;
   src: string;
-  onReplace?: () => void;
-  onRemove?: () => void;
-  className?: string;
+  onReplace?: () => void | undefined;
+  onRemove?: () => void | undefined;
+  className?: string | undefined;
 }
 
 export function CardPreview({ label, src, onReplace, onRemove, className }: CardPreviewProps) {

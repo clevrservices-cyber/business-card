@@ -37,7 +37,7 @@ interface ContactResultsProps {
   result: ScanResult;
   onConfirm: (contact: ContactData) => void;
   onStartOver: () => void;
-  confirming?: boolean;
+  confirming?: boolean | undefined;
 }
 
 export function ContactResults({

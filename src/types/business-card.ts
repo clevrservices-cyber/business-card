@@ -22,19 +22,19 @@ export interface PhoneEntry {
   id: string;
   type: PhoneType;
   value: string;
-  label?: string;
+  label?: string | undefined;
 }
 
 export interface EmailEntry {
   id: string;
   value: string;
-  label?: string;
+  label?: string | undefined;
 }
 
 export interface WebsiteEntry {
   id: string;
   value: string;
-  label?: string;
+  label?: string | undefined;
 }
 
 export interface SocialLink {
@@ -44,40 +44,40 @@ export interface SocialLink {
 }
 
 export interface PostalAddress {
-  street?: string;
-  building?: string;
-  suite?: string;
-  floor?: string;
-  city?: string;
-  state?: string;
-  postal_code?: string;
-  country?: string;
+  street?: string | undefined;
+  building?: string | undefined;
+  suite?: string | undefined;
+  floor?: string | undefined;
+  city?: string | undefined;
+  state?: string | undefined;
+  postal_code?: string | undefined;
+  country?: string | undefined;
 }
 
 export interface QrCodeEntry {
   id: string;
   format?: string; // e.g. "qr" | "code128"
   detected: boolean;
-  content?: string;
-  side?: CardSide;
+  content?: string | undefined;
+  side?: CardSide | undefined;
 }
 
 export interface ContactData {
-  first_name?: string;
-  middle_name?: string;
-  last_name?: string;
-  full_name?: string;
-  job_title?: string;
-  department?: string;
-  company?: string;
-  tagline?: string;
+  first_name?: string | undefined;
+  middle_name?: string | undefined;
+  last_name?: string | undefined;
+  full_name?: string | undefined;
+  job_title?: string | undefined;
+  department?: string | undefined;
+  company?: string | undefined;
+  tagline?: string | undefined;
   emails: EmailEntry[];
   phones: PhoneEntry[];
   websites: WebsiteEntry[];
   address: PostalAddress;
   social_links: SocialLink[];
   qr_codes: QrCodeEntry[];
-  notes?: string;
+  notes?: string | undefined;
 }
 
 /** Confidence keyed by field path, e.g. "full_name", "phones.0", "address.city". */
@@ -90,10 +90,10 @@ export interface ScanWarning {
 
 export interface ScanResult {
   front_image: string;
-  back_image?: string;
+  back_image?: string | undefined;
   contact: ContactData;
   confidence: ConfidenceMap;
-  warnings?: ScanWarning[];
+  warnings?: ScanWarning[] | undefined;
 }
 
 export type ScanErrorCode =
@@ -109,7 +109,7 @@ export interface ScanError {
   code: ScanErrorCode;
   message: string;
   /** Optional partial extraction the backend was still able to return. */
-  partial?: ScanResult;
+  partial?: ScanResult | undefined;
 }
 
 export type CardSide = "front" | "back";

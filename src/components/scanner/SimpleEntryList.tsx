@@ -13,9 +13,9 @@ interface SimpleEntryListProps {
   placeholder: string;
   emptyText: string;
   confidenceKey: string;
-  type?: string;
+  type?: string | undefined;
   entries: Entry[];
-  confidence?: ConfidenceMap;
+  confidence?: ConfidenceMap | undefined;
   onChange: (entries: Entry[]) => void;
 }
 
@@ -73,7 +73,7 @@ function SimpleEntryList({
 
 export function EmailList(props: {
   emails: EmailEntry[];
-  confidence?: ConfidenceMap;
+  confidence?: ConfidenceMap | undefined;
   onChange: (e: EmailEntry[]) => void;
 }) {
   return (
@@ -93,7 +93,7 @@ export function EmailList(props: {
 
 export function WebsiteList(props: {
   websites: WebsiteEntry[];
-  confidence?: ConfidenceMap;
+  confidence?: ConfidenceMap | undefined;
   onChange: (e: WebsiteEntry[]) => void;
 }) {
   return (

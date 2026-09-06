@@ -8,10 +8,10 @@ interface ContactFieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;
-  confidence?: ConfidenceLevel;
-  type?: string;
-  action?: ReactNode;
+  placeholder?: string | undefined;
+  confidence?: ConfidenceLevel | undefined;
+  type?: string | undefined;
+  action?: ReactNode | undefined;
 }
 
 export function ContactField({

@@ -19,7 +19,7 @@ export function AddressForm({
   onChange,
 }: {
   address: PostalAddress;
-  confidence?: ConfidenceMap;
+  confidence?: ConfidenceMap | undefined;
   onChange: (a: PostalAddress) => void;
 }) {
   return (

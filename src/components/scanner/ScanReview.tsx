@@ -6,7 +6,7 @@ import type { CapturedImage } from "@/types/business-card";
 
 interface ScanReviewProps {
   front: CapturedImage;
-  back?: CapturedImage;
+  back?: CapturedImage | undefined;
   onReplaceFront: () => void;
   onReplaceBack: () => void;
   onRemoveBack: () => void;

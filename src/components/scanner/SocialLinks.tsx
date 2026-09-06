@@ -27,7 +27,7 @@ export function SocialLinks({
   onChange,
 }: {
   links: SocialLink[];
-  confidence?: ConfidenceMap;
+  confidence?: ConfidenceMap | undefined;
   onChange: (l: SocialLink[]) => void;
 }) {
   return (

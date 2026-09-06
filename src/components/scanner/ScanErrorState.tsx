@@ -33,10 +33,10 @@ const COPY: Record<ScanErrorCode, { title: string; hint: string }> = {
 interface ScanErrorStateProps {
   code: ScanErrorCode;
   /** Message supplied by the backend; shown verbatim when present. */
-  message?: string;
+  message?: string | undefined;
   onRetry: () => void;
   onBack: () => void;
-  onContinueAnyway?: () => void;
+  onContinueAnyway?: () => void | undefined;
 }
 
 export function ScanErrorState({

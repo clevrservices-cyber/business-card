@@ -11,7 +11,7 @@ import type { ScanError, ScanErrorCode, ScanResult } from "@/types/business-card
 
 export class ScanApiError extends Error {
   code: ScanErrorCode;
-  partial?: ScanResult;
+  partial?: ScanResult | undefined;
 
   constructor(error: ScanError) {
     super(error.message);
@@ -102,7 +102,7 @@ function mockResult(frontUrl: string, backUrl?: string): ScanResult {
 }
 
 export interface ScanBusinessCardOptions {
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 }
 
 /**
@@ -121,7 +121,7 @@ export async function scanBusinessCard(
   backImage?: File,
   _options: ScanBusinessCardOptions = {},
 ): Promise<ScanResult> {
-  await new Promise((r) => setTimeout(r, 4200));
+  await new Promise((r) => setTimeout(r, 4200)) | undefined;
 
   const frontUrl = URL.createObjectURL(frontImage);
   const backUrl = backImage ? URL.createObjectURL(backImage) : undefined;
