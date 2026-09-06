@@ -36,7 +36,7 @@ interface ScanErrorStateProps {
   message?: string | undefined;
   onRetry: () => void;
   onBack: () => void;
-  onContinueAnyway?: () => void | undefined;
+  onContinueAnyway?: (() => void) | undefined;
 }
 
 export function ScanErrorState({
