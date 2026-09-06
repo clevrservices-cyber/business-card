@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function OriginalCardViewer({ front, back }: { front?: string; back?: string }) {
+export function OriginalCardViewer({ front, back }: { front?: string | undefined; back?: string | undefined }) {
   if (!front) return null;
   return (
     <Dialog>

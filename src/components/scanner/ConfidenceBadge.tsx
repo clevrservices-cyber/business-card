@@ -17,7 +17,7 @@ const STYLES: Record<ConfidenceLevel, { cls: string; text: string; Icon: typeof 
   low: { cls: "bg-destructive/12 text-destructive", text: "Review", Icon: AlertTriangle },
 };
 
-export function ConfidenceBadge({ level }: { level?: ConfidenceLevel }) {
+export function ConfidenceBadge({ level }: { level?: ConfidenceLevel | undefined }) {
   if (!level) return null;
   const { cls, text, Icon } = STYLES[level];
   return (

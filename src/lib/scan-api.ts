@@ -118,10 +118,10 @@ export interface ScanBusinessCardOptions {
  */
 export async function scanBusinessCard(
   frontImage: File,
-  backImage?: File,
+  backImage?: File | undefined,
   _options: ScanBusinessCardOptions = {},
 ): Promise<ScanResult> {
-  await new Promise((r) => setTimeout(r, 4200)) | undefined;
+  await new Promise((r) => setTimeout(r, 4200));
 
   const frontUrl = URL.createObjectURL(frontImage);
   const backUrl = backImage ? URL.createObjectURL(backImage) : undefined;

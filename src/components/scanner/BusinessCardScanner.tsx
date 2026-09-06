@@ -24,7 +24,7 @@ export function BusinessCardScanner() {
   const [front, setFront] = useState<CapturedImage>();
   const [back, setBack] = useState<CapturedImage>();
   const [result, setResult] = useState<ScanResult>();
-  const [error, setError] = useState<{ code: ScanErrorCode; message?: string; partial?: ScanResult }>();
+  const [error, setError] = useState<{ code: ScanErrorCode; message?: string | undefined; partial?: ScanResult | undefined }>();
   const [confirming, setConfirming] = useState(false);
 
   const reset = () => {
