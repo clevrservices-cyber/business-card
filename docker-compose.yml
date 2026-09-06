@@ -1,0 +1,84 @@
+# Local dev/deploy stack: postgres + backend API + frontend dev server.
+#
+# Traefik labels are included for consistency with this workspace's other apps
+# but are NOT sufficient on their own to expose this publicly — this box's
+# Traefik runs file-provider only, so a dynamic route file is also needed.
+# Until that's set up, reach this over the published host ports below.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: cardreader-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cardreader}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-cardreader}
+    ports:
+      - "127.0.0.1:5439:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cardreader-net
+
+  cardreader-backend:
+    build: ./backend
+    container_name: cardreader-backend
+    restart: unless-stopped
+    working_dir: /app/backend
+    volumes:
+      - ./backend:/app/backend
+      - backend-node-modules:/app/backend/node_modules
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 8090
+      DATABASE_URL: postgres://${POSTGRES_USER:-cardreader}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-cardreader}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-5}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-15}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3020}
+    ports:
+      - "8090:8090"
+    depends_on:
+      - postgres
+    networks:
+      - cardreader-net
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cardreader-backend.rule=Host(`api-cardreader.arundopower.com`)"
+      - "traefik.http.routers.cardreader-backend.entrypoints=websecure"
+      - "traefik.http.services.cardreader-backend.loadbalancer.server.port=8090"
+
+  cardreader-frontend:
+    image: oven/bun:1-alpine
+    container_name: cardreader-frontend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - .:/app
+      - frontend-node-modules:/app/node_modules
+    command: sh -c "bun install && bun run dev -- --host 0.0.0.0 --port 3020"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8090}
+    ports:
+      - "3020:3020"
+    depends_on:
+      - cardreader-backend
+    networks:
+      - cardreader-net
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cardreader-frontend.rule=Host(`cardreader.arundopower.com`)"
+      - "traefik.http.routers.cardreader-frontend.entrypoints=websecure"
+      - "traefik.http.services.cardreader-frontend.loadbalancer.server.port=3020"
+
+networks:
+  cardreader-net:
+  traefik-net:
+    external: true
+
+volumes:
+  postgres-data:
+  backend-node-modules:
+  frontend-node-modules:
