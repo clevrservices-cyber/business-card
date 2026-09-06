@@ -1,9 +1,15 @@
 # Local dev/deploy stack: postgres + backend API + frontend dev server.
 #
-# Traefik labels are included for consistency with this workspace's other apps
-# but are NOT sufficient on their own to expose this publicly — this box's
-# Traefik runs file-provider only, so a dynamic route file is also needed.
-# Until that's set up, reach this over the published host ports below.
+# The frontend is deployed publicly through Lovable (its own dedicated URL) —
+# cardreader-frontend here is local-only, for testing scan-api.ts against a
+# real backend without touching the Lovable-hosted build. It intentionally
+# carries no Traefik labels/network and is reached over its published port.
+#
+# The backend has no Lovable equivalent, so it still needs a real public
+# route for the Lovable frontend to call. Its Traefik labels are included for
+# consistency with this workspace's other apps but are NOT sufficient on
+# their own — this box's Traefik runs file-provider only, so a dynamic route
+# file is also needed. Until that's set up, reach it over the published port.
 services:
   postgres:
     image: postgres:17-alpine
@@ -66,12 +72,6 @@ services:
       - cardreader-backend
     networks:
       - cardreader-net
-      - traefik-net
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.cardreader-frontend.rule=Host(`cardreader.arundopower.com`)"
-      - "traefik.http.routers.cardreader-frontend.entrypoints=websecure"
-      - "traefik.http.services.cardreader-frontend.loadbalancer.server.port=3020"
 
 networks:
   cardreader-net:
