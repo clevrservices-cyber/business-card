@@ -1,15 +1,18 @@
-# Local dev/deploy stack: postgres + backend API + frontend dev server.
+# Production stack: postgres + backend API + frontend, both self-hosted on
+# this box at businesscard.arundopower.com (single origin — see
+# /opt/docker/reverse-proxy/traefik/dynamic/businesscard.yml, which routes
+# PathPrefix(/api) to cardreader-backend and everything else to
+# cardreader-frontend). Frontend and backend no longer live on separate
+# origins, so CORS is only needed for local cross-port dev now.
 #
-# The frontend is deployed publicly through Lovable (its own dedicated URL) —
-# cardreader-frontend here is local-only, for testing scan-api.ts against a
-# real backend without touching the Lovable-hosted build. It intentionally
-# carries no Traefik labels/network and is reached over its published port.
+# cardreader-frontend runs a production build (Nitro node-server preset, see
+# Dockerfile), not a dev server — this is the public production domain, so
+# `docker compose up -d --build cardreader-frontend` is how you deploy a
+# frontend change, not a bind mount.
 #
-# The backend has no Lovable equivalent, so it still needs a real public
-# route for the Lovable frontend to call. Its Traefik labels are included for
-# consistency with this workspace's other apps but are NOT sufficient on
-# their own — this box's Traefik runs file-provider only, so a dynamic route
-# file is also needed. Until that's set up, reach it over the published port.
+# Traefik labels below are decoration, kept for consistency with this
+# workspace's other apps — this box's Traefik runs file-provider only, so the
+# dynamic/businesscard.yml file is what actually routes traffic.
 services:
   postgres:
     image: postgres:17-alpine
@@ -51,27 +54,29 @@ services:
       - traefik-net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cardreader-backend.rule=Host(`api-cardreader.arundopower.com`)"
+      - "traefik.http.routers.cardreader-backend.rule=Host(`businesscard.arundopower.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.cardreader-backend.entrypoints=websecure"
       - "traefik.http.services.cardreader-backend.loadbalancer.server.port=8090"
 
   cardreader-frontend:
-    image: oven/bun:1-alpine
+    build: .
     container_name: cardreader-frontend
     restart: unless-stopped
-    working_dir: /app
-    volumes:
-      - .:/app
-      - frontend-node-modules:/app/node_modules
-    command: sh -c "bun install && bun run dev -- --host 0.0.0.0 --port 3020"
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:8090}
+      NODE_ENV: production
+      PORT: 3020
     ports:
       - "3020:3020"
     depends_on:
       - cardreader-backend
     networks:
       - cardreader-net
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cardreader-frontend.rule=Host(`businesscard.arundopower.com`)"
+      - "traefik.http.routers.cardreader-frontend.entrypoints=websecure"
+      - "traefik.http.services.cardreader-frontend.loadbalancer.server.port=3020"
 
 networks:
   cardreader-net:
@@ -81,4 +86,3 @@ networks:
 volumes:
   postgres-data:
   backend-node-modules:
-  frontend-node-modules:
