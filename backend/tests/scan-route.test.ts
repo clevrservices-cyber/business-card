@@ -107,7 +107,7 @@ describe.skipIf(!hasDb)("POST /api/business-card/scan — full pipeline (needs D
     expect(body.code).toBe("NO_CONTACT_DETECTED");
     expect(body.partial.contact).toBeDefined();
     expect(body.partial.warnings.some((w: { code: string }) => w.code === "AI_NOT_CONFIGURED")).toBe(
-      Boolean(!process.env["ANTHROPIC_API_KEY"]),
+      Boolean(!process.env["OPENAI_API_KEY"] && !process.env["ANTHROPIC_API_KEY"]),
     );
   });
 });

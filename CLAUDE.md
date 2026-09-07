@@ -14,9 +14,10 @@ Two halves:
 - **`src/`** — the frontend (TanStack Start / React 19, Lovable-generated). `src/lib/scan-api.ts`
   is the one file wired to the real backend; every other component is untouched from what Lovable
   produced.
-- **`backend/`** — real, working. Bun + TypeScript + Express + Postgres, Anthropic Claude vision
-  extraction behind a swappable provider registry (falls back to a zero-cost stub with no key
-  configured), independent QR/vCard detection, cross-side merge/validation/normalization.
+- **`backend/`** — real, working. Bun + TypeScript + Express + Postgres, vision extraction behind
+  a swappable provider registry (OpenAI `gpt-4o` if `OPENAI_API_KEY` is set, else Anthropic Claude
+  if `ANTHROPIC_API_KEY` is set, else a zero-cost stub), independent QR/vCard detection, cross-side
+  merge/validation/normalization.
 
 ## Production deployment
 
@@ -61,10 +62,11 @@ meant to be rebuilt on deploy, not live-edited.
 See `backend/CLAUDE.md`-equivalent detail inline here (no separate file yet): Postgres via raw
 `pg` + numbered SQL migrations (`backend/src/infrastructure/db/migrations/`, run automatically on
 boot in `main.ts`), an AI capability registry
-(`backend/src/infrastructure/ai/registry.ts`) binding `vision.extract` to Anthropic or a stub
-based on whether `ANTHROPIC_API_KEY` is set, and QR detection (`jsQR` + `sharp`) that runs
-independently of the vision call and only feeds in as corroborating evidence during merge
-(`backend/src/domain/merge-sides.ts`) — never silently overwrites the visual reading.
+(`backend/src/infrastructure/ai/registry.ts`) binding `vision.extract` to OpenAI, Anthropic, or a
+stub — first configured key wins, in that order (`backend/src/infrastructure/ai/providers/`) —
+and QR detection (`jsQR` + `sharp`) that runs independently of the vision call and only feeds in
+as corroborating evidence during merge (`backend/src/domain/merge-sides.ts`) — never silently
+overwrites the visual reading.
 
 ```bash
 cd backend

@@ -6,6 +6,8 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5"),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().default("gpt-4o"),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(15),
   CORS_ORIGIN: z.string().default("http://localhost:3020"),
 });
@@ -30,5 +32,7 @@ export const config = {
   ai: {
     anthropicApiKey: env.ANTHROPIC_API_KEY,
     anthropicModel: env.ANTHROPIC_MODEL,
+    openaiApiKey: env.OPENAI_API_KEY,
+    openaiModel: env.OPENAI_MODEL,
   },
 };
