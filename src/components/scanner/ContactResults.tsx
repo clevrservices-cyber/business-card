@@ -1,16 +1,30 @@
-import { Building2, CheckCircle2, MapPin, QrCode, Sparkles, User } from "lucide-react";
+import {
+  Building2,
+  CalendarClock,
+  CheckCircle2,
+  MapPin,
+  QrCode,
+  Sparkles,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { ActionsList } from "./ActionsList";
 import { AddressForm } from "./AddressForm";
 import { ConfidenceBadge, resolveConfidence } from "./ConfidenceBadge";
 import { ContactField } from "./ContactField";
+import { CreatableCombobox } from "./CreatableCombobox";
+import { CreatableTagInput } from "./CreatableTagInput";
+import { DateField } from "./DateField";
 import { EmailList, WebsiteList } from "./SimpleEntryList";
 import { OriginalCardViewer } from "./OriginalCardViewer";
 import { PhoneList } from "./PhoneList";
 import { SocialLinks } from "./SocialLinks";
+import { VoiceRecordButton } from "./VoiceRecordButton";
+import { fetchContactEvents, fetchTags } from "@/lib/scan-api";
 import type { ContactData, ScanResult } from "@/types/business-card";
 
 function Section({
@@ -129,16 +143,8 @@ export function ContactResults({
         </div>
         <Separator className="my-5" />
         <div className="space-y-5">
-          <PhoneList
-            phones={contact.phones}
-            confidence={conf}
-            onChange={(p) => set("phones", p)}
-          />
-          <EmailList
-            emails={contact.emails}
-            confidence={conf}
-            onChange={(e) => set("emails", e)}
-          />
+          <PhoneList phones={contact.phones} confidence={conf} onChange={(p) => set("phones", p)} />
+          <EmailList emails={contact.emails} confidence={conf} onChange={(e) => set("emails", e)} />
           <WebsiteList
             websites={contact.websites}
             confidence={conf}
@@ -155,7 +161,7 @@ export function ContactResults({
         />
       </Section>
 
-      <Section icon={Sparkles} title="Online & social">
+      <Section icon={Sparkles} title="Socials">
         <SocialLinks
           links={contact.social_links}
           confidence={conf}
@@ -183,6 +189,47 @@ export function ContactResults({
             ))}
           </ul>
         )}
+      </Section>
+
+      <Section icon={CalendarClock} title="Event & follow-up">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <CreatableCombobox
+            label="Contact event"
+            value={contact.contact_event}
+            onChange={(v) => set("contact_event", v)}
+            fetchOptions={fetchContactEvents}
+            confidence={resolveConfidence(conf, "contact_event")}
+          />
+          <DateField
+            label="Date event"
+            value={contact.event_date}
+            onChange={(v) => set("event_date", v)}
+          />
+        </div>
+        <Separator className="my-5" />
+        <div className="space-y-5">
+          <CreatableTagInput
+            label="Tags"
+            values={contact.tags}
+            onChange={(t) => set("tags", t)}
+            fetchOptions={fetchTags}
+          />
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs font-semibold text-muted-foreground">
+                Describe connection
+              </Label>
+              <VoiceRecordButton onTranscribed={(text) => set("connection_description", text)} />
+            </div>
+            <Textarea
+              value={contact.connection_description ?? ""}
+              rows={3}
+              onChange={(e) => set("connection_description", e.target.value)}
+              className="bg-card"
+            />
+          </div>
+          <ActionsList actions={contact.actions} onChange={(a) => set("actions", a)} />
+        </div>
       </Section>
 
       <Section icon={CheckCircle2} title="Notes">

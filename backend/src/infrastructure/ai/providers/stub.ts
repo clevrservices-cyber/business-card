@@ -1,5 +1,11 @@
 import { emptyContact } from "../../../domain/contact.js";
-import type { VisionExtractInput, VisionExtractOutput } from "../types.js";
+import type {
+  AudioTranscribeInput,
+  TextExtractInput,
+  TextExtractOutput,
+  VisionExtractInput,
+  VisionExtractOutput,
+} from "../types.js";
 
 /**
  * Runs when no ANTHROPIC_API_KEY is configured. Returns an empty contact
@@ -15,4 +21,20 @@ export async function extractCard(_input: VisionExtractInput): Promise<VisionExt
         "no fields were extracted. Configure a key or fill in the contact by hand.",
     ],
   };
+}
+
+export async function extractContactFromText(_input: TextExtractInput): Promise<TextExtractOutput> {
+  return {
+    contact: {},
+    confidence: {},
+    notes: ["Text extraction is not configured on this server (no OPENAI_API_KEY)."],
+  };
+}
+
+export async function transcribeAudio(_input: AudioTranscribeInput): Promise<string> {
+  throw new Error("Voice transcription is not configured on this server (no OPENAI_API_KEY).");
+}
+
+export async function correctAndSummarize(rawText: string): Promise<string> {
+  return rawText;
 }

@@ -8,7 +8,9 @@ const schema = z.object({
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5"),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4o"),
+  OPENAI_TEXT_MODEL: z.string().default("gpt-4o-mini"),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(15),
+  MAX_AUDIO_MB: z.coerce.number().positive().default(5),
   CORS_ORIGIN: z.string().default("http://localhost:3020"),
 });
 
@@ -25,6 +27,7 @@ export const config = {
   port: env.PORT,
   databaseUrl: env.DATABASE_URL,
   maxUploadBytes: env.MAX_UPLOAD_MB * 1024 * 1024,
+  maxAudioBytes: env.MAX_AUDIO_MB * 1024 * 1024,
   // Comma-separated in the env var (e.g. local dev origin + the Lovable-hosted
   // production frontend at once). "*" is passed through as-is — the `cors`
   // package only treats the bare string specially, not a one-element array.
@@ -34,5 +37,6 @@ export const config = {
     anthropicModel: env.ANTHROPIC_MODEL,
     openaiApiKey: env.OPENAI_API_KEY,
     openaiModel: env.OPENAI_MODEL,
+    openaiTextModel: env.OPENAI_TEXT_MODEL,
   },
 };

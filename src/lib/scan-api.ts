@@ -122,3 +122,48 @@ export async function confirmContact(contact: unknown): Promise<void> {
     throw new Error("Could not send the confirmed contact.");
   }
 }
+
+interface LookupBody {
+  success: boolean;
+  items: string[];
+}
+
+async function fetchLookup(path: string, query?: string): Promise<string[]> {
+  const qs = query ? `?q=${encodeURIComponent(query)}` : "";
+  const response = await fetch(`${API_BASE}${path}${qs}`);
+  const json = (await response.json().catch(() => undefined)) as LookupBody | undefined;
+  return json?.success ? json.items : [];
+}
+
+/** Previously-used Contact Event names, for the reusable-dropdown combobox. */
+export async function fetchContactEvents(query?: string): Promise<string[]> {
+  return fetchLookup("/api/business-card/contact-events", query);
+}
+
+/** Previously-used Tag names, for the reusable-dropdown tag input. */
+export async function fetchTags(query?: string): Promise<string[]> {
+  return fetchLookup("/api/business-card/tags", query);
+}
+
+export interface TranscribeResult {
+  transcript: string;
+  text: string;
+}
+
+/** Uploads a short voice recording and returns its grammar-corrected, summarized transcript. */
+export async function transcribeAudio(blob: Blob): Promise<TranscribeResult> {
+  const filename = blob.type.includes("mp4") ? "recording.mp4" : "recording.webm";
+  const body = new FormData();
+  body.append("audio", blob, filename);
+
+  const response = await fetch(`${API_BASE}/api/business-card/transcribe`, {
+    method: "POST",
+    body,
+  });
+  const json = await response.json().catch(() => undefined);
+
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.message ?? "Could not transcribe the recording.");
+  }
+  return { transcript: json.transcript, text: json.text };
+}

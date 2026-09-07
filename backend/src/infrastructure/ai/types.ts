@@ -18,3 +18,26 @@ export interface VisionExtractOutput {
 }
 
 export type VisionProvider = (input: VisionExtractInput) => Promise<VisionExtractOutput>;
+
+export interface TextExtractInput {
+  text: string;
+  sourceUrl: string;
+}
+
+export interface TextExtractOutput {
+  contact: Partial<ContactRecord>;
+  confidence: ConfidenceMap;
+  notes: string[];
+}
+
+export type TextExtractProvider = (input: TextExtractInput) => Promise<TextExtractOutput>;
+
+export interface AudioTranscribeInput {
+  buffer: Buffer;
+  mimeType: string;
+  filename: string;
+}
+
+export type AudioTranscribeProvider = (input: AudioTranscribeInput) => Promise<string>;
+
+export type CorrectAndSummarizeProvider = (rawText: string) => Promise<string>;

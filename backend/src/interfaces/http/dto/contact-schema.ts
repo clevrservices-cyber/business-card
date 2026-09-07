@@ -35,7 +35,7 @@ export const contactRecordSchema = z.object({
   social_links: z.array(
     z.object({
       id: idString,
-      platform: z.enum(["linkedin", "x", "facebook", "instagram", "github", "other"]),
+      platform: z.enum(["linkedin", "x", "facebook", "instagram", "skype", "whatsapp", "wechat", "telegram"]),
       value: z.string(),
     }),
   ),
@@ -48,6 +48,19 @@ export const contactRecordSchema = z.object({
       side: z.enum(["front", "back"]).optional(),
     }),
   ),
+  contact_event: z.string().optional(),
+  event_date: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  connection_description: z.string().optional(),
+  actions: z
+    .array(
+      z.object({
+        id: idString,
+        description: z.string().optional(),
+        deadline: z.string().optional(),
+      }),
+    )
+    .default([]),
   notes: z.string().optional(),
 });
 

@@ -41,11 +41,11 @@ export function hydrateContact(raw: RawToolInput["contact"]): ContactRecord {
   contact.social_links = (raw.social_links ?? []).map((s) => ({
     id: nextId(),
     value: s.value,
-    platform: (["linkedin", "x", "facebook", "instagram", "github", "other"] as const).includes(
-      s.platform as never,
-    )
+    platform: (
+      ["linkedin", "x", "facebook", "instagram", "skype", "whatsapp", "wechat", "telegram"] as const
+    ).includes(s.platform as never)
       ? (s.platform as ContactRecord["social_links"][number]["platform"])
-      : "other",
+      : "linkedin", // safe default — "other" no longer exists in the enum
   }));
   return contact;
 }

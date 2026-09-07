@@ -12,6 +12,7 @@ import type { CardImage } from "../../../infrastructure/ai/types.js";
 import { query } from "../../../infrastructure/db/pool.js";
 import { preprocessImage } from "../../../infrastructure/image/preprocess.js";
 import { detectQrCode } from "../../../infrastructure/qr/detect.js";
+import { enrichContactFromQrUrl, isFetchableUrl } from "../../../infrastructure/qr/url-enrich.js";
 import { parseVCard } from "../../../infrastructure/qr/vcard.js";
 
 const ALLOWED_MIME: Record<string, CardImage["mimeType"]> = {
@@ -80,17 +81,28 @@ scanRouter.post(
         back ? detectQrCode(back, "back" as CardSide) : Promise.resolve(undefined),
       ]);
 
-      const capability = capabilities["vision.extract"];
-      const vlmResult = await capability.run({
-        front: { base64: preppedFront.buffer.toString("base64"), mimeType: preppedFront.mimeType },
-        back: preppedBack
-          ? { base64: preppedBack.buffer.toString("base64"), mimeType: preppedBack.mimeType }
-          : undefined,
-      });
-
       const qrEntries = [qrFront, qrBack].filter((e): e is NonNullable<typeof e> => Boolean(e));
       const vCardText = qrEntries.find((e) => e.content && /BEGIN:VCARD/i.test(e.content))?.content;
-      const qrContact = vCardText ? parseVCard(vCardText) : undefined;
+      const vCardContact = vCardText ? parseVCard(vCardText) : undefined;
+      // Only worth fetching a QR-linked URL when the QR wasn't already a vCard.
+      const qrUrlCandidate = !vCardContact
+        ? qrEntries.find((e) => e.content && isFetchableUrl(e.content))?.content
+        : undefined;
+
+      const capability = capabilities["vision.extract"];
+      // No data dependency between the vision call and QR-URL enrichment —
+      // run them concurrently so a QR link's fetch+extract latency never
+      // stacks on top of the vision call's.
+      const [vlmResult, qrUrlContact] = await Promise.all([
+        capability.run({
+          front: { base64: preppedFront.buffer.toString("base64"), mimeType: preppedFront.mimeType },
+          back: preppedBack
+            ? { base64: preppedBack.buffer.toString("base64"), mimeType: preppedBack.mimeType }
+            : undefined,
+        }),
+        qrUrlCandidate ? enrichContactFromQrUrl(qrUrlCandidate) : Promise.resolve(undefined),
+      ]);
+      const qrContact = vCardContact ?? qrUrlContact;
 
       const merged = mergeContactSides({
         vlmContact: vlmResult.contact,

@@ -6,7 +6,15 @@
 
 export type PhoneType = "mobile" | "direct" | "office" | "home" | "fax" | "other";
 
-export type SocialPlatform = "linkedin" | "x" | "facebook" | "instagram" | "github" | "other";
+export type SocialPlatform =
+  | "linkedin"
+  | "x"
+  | "facebook"
+  | "instagram"
+  | "skype"
+  | "whatsapp"
+  | "wechat"
+  | "telegram";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
@@ -57,6 +65,12 @@ export interface QrCodeEntry {
   side?: CardSide | undefined;
 }
 
+export interface ActionItem {
+  id: string;
+  description?: string | undefined;
+  deadline?: string | undefined; // ISO date "YYYY-MM-DD"
+}
+
 export interface ContactRecord {
   first_name?: string | undefined;
   middle_name?: string | undefined;
@@ -72,6 +86,11 @@ export interface ContactRecord {
   address: PostalAddress;
   social_links: SocialLink[];
   qr_codes: QrCodeEntry[];
+  contact_event?: string | undefined;
+  event_date?: string | undefined; // ISO date "YYYY-MM-DD", paired with contact_event
+  tags: string[];
+  connection_description?: string | undefined;
+  actions: ActionItem[];
   notes?: string | undefined;
 }
 
@@ -91,6 +110,8 @@ export function emptyContact(): ContactRecord {
     address: {},
     social_links: [],
     qr_codes: [],
+    tags: [],
+    actions: [],
   };
 }
 

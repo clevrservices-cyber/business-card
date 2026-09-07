@@ -17,8 +17,10 @@ const PLATFORMS: { value: SocialPlatform; label: string }[] = [
   { value: "x", label: "X / Twitter" },
   { value: "facebook", label: "Facebook" },
   { value: "instagram", label: "Instagram" },
-  { value: "github", label: "GitHub" },
-  { value: "other", label: "Other URL" },
+  { value: "skype", label: "Skype" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "wechat", label: "WeChat" },
+  { value: "telegram", label: "Telegram" },
 ];
 
 export function SocialLinks({
@@ -33,12 +35,12 @@ export function SocialLinks({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold text-muted-foreground">Online &amp; social</Label>
+        <Label className="text-xs font-semibold text-muted-foreground">Socials</Label>
         <Button
           variant="ghost"
           size="sm"
           onClick={() =>
-            onChange([...links, { id: crypto.randomUUID(), platform: "other", value: "" }])
+            onChange([...links, { id: crypto.randomUUID(), platform: "linkedin", value: "" }])
           }
         >
           <Plus className="size-4" />
@@ -54,9 +56,7 @@ export function SocialLinks({
             value={link.platform}
             onValueChange={(v) =>
               onChange(
-                links.map((l, idx) =>
-                  idx === i ? { ...l, platform: v as SocialPlatform } : l,
-                ),
+                links.map((l, idx) => (idx === i ? { ...l, platform: v as SocialPlatform } : l)),
               )
             }
           >

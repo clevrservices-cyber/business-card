@@ -12,12 +12,16 @@ current, actual state of both halves.
 Two halves:
 
 - **`src/`** — the frontend (TanStack Start / React 19, Lovable-generated). `src/lib/scan-api.ts`
-  is the one file wired to the real backend; every other component is untouched from what Lovable
-  produced.
+  is the API boundary to the real backend; most components are untouched from what Lovable
+  produced, except the contact review screen (`ContactResults.tsx` and its `scanner/` siblings),
+  which now also has a networking-notes block (Contact Event, Tags, voice-recorded connection
+  notes, follow-up Actions) added directly on top of Lovable's original layout conventions.
 - **`backend/`** — real, working. Bun + TypeScript + Express + Postgres, vision extraction behind
   a swappable provider registry (OpenAI `gpt-4o` if `OPENAI_API_KEY` is set, else Anthropic Claude
-  if `ANTHROPIC_API_KEY` is set, else a zero-cost stub), independent QR/vCard detection, cross-side
-  merge/validation/normalization.
+  if `ANTHROPIC_API_KEY` is set, else a zero-cost stub), independent QR/vCard detection (plus an
+  SSRF-guarded fetch+extract pass when a QR links to a URL instead of a vCard), cross-side
+  merge/validation/normalization, and voice-note transcription (Whisper) + grammar-correct/summarize
+  (a cheaper text-only OpenAI model).
 
 ## Production deployment
 
@@ -62,18 +66,43 @@ meant to be rebuilt on deploy, not live-edited.
 See `backend/CLAUDE.md`-equivalent detail inline here (no separate file yet): Postgres via raw
 `pg` + numbered SQL migrations (`backend/src/infrastructure/db/migrations/`, run automatically on
 boot in `main.ts`), an AI capability registry
-(`backend/src/infrastructure/ai/registry.ts`) binding `vision.extract` to OpenAI, Anthropic, or a
+(`backend/src/infrastructure/ai/registry.ts`) binding `vision.extract`, `text.extractContact`,
+`audio.transcribe`, and `text.correctAndSummarize` to OpenAI, Anthropic (vision only), or a
 stub — first configured key wins, in that order (`backend/src/infrastructure/ai/providers/`) —
 and QR detection (`jsQR` + `sharp`) that runs independently of the vision call and only feeds in
 as corroborating evidence during merge (`backend/src/domain/merge-sides.ts`) — never silently
 overwrites the visual reading.
+
+**QR-URL enrichment**: if a decoded QR code isn't a vCard but is a plain `http(s)` URL, the backend
+fetches it (`backend/src/infrastructure/http/safe-fetch.ts`) and runs the page text through
+`text.extractContact`, merged in exactly like vCard data. The fetch is SSRF-guarded: scheme
+allowlist, DNS-resolved-IP validation against private/loopback/link-local/reserved ranges
+(including the `169.254.169.254` cloud metadata address), connects to the pre-validated IP directly
+(closes the DNS-rebinding gap), and **re-validates on every redirect hop**, not just the initial
+URL — a redirect can repoint to an internal address after the first hop passed. Runs concurrently
+with the vision call (`Promise.all` in `scan.ts`), not serially, since neither depends on the
+other's result. Never fails the scan — every failure mode (blocked, timeout, too-large, non-html)
+degrades to "no enrichment," logged as `[qr] URL enrichment skipped for "...": ...`.
+
+**Reusable Contact Event / Tags**: two flat lookup tables (`002_lookup_tables.sql`, case-insensitive
+unique index on `lower(name)`), upserted from `confirm.ts` when a confirmed contact carries them,
+listed via `GET /api/business-card/{contact-events,tags}` for the frontend's creatable dropdown/tag
+input.
+
+**Voice notes**: `POST /api/business-card/transcribe` (multer, `MAX_AUDIO_MB` limit) runs
+`audio.transcribe` (Whisper) then `text.correctAndSummarize` (a separate, cheaper
+`OPENAI_TEXT_MODEL` — default `gpt-4o-mini` — from the vision model) and returns the corrected/
+summarized text. Used by both "Describe connection" and each Action's description
+(`src/hooks/use-voice-recorder.ts`, browser `MediaRecorder`, 20s auto-stop).
 
 ```bash
 cd backend
 bun install
 bun run dev          # bun --watch src/main.ts
 bun run migrate       # bun src/infrastructure/db/migrations runner
-bun test               # 24 tests; DB-dependent ones skip automatically if postgres isn't reachable
+bun test               # DB-dependent tests skip automatically if postgres isn't reachable; .env.test
+                         # forces the stub AI provider even though the real .env has a live key, so
+                         # `bun test` never makes a real (paid) API call
 bun run typecheck
 ```
 
@@ -94,3 +123,11 @@ OCR fallback (interface exists, no body — Claude's vision handles OCR directly
 CRM exporters, auth/rate limiting (no login exists anywhere in the frontend; this is a real public
 production domain today with no auth in front of it — flagged, not silently fixed without being
 asked).
+
+**DB-dependent tests share the real Postgres instance** with the dev/production backend (both
+point at `127.0.0.1:5439`, same database) — `bun test` writes real rows into `scans`/`contacts`/
+`tags`/`contact_events`, not an isolated test database. `.env.test` blanking the AI keys stops tests
+from making live paid API calls, but doesn't stop this data pollution. Worth a real fix (separate
+test DB or schema) if this starts mattering — not done here since it's a pre-existing pattern, not
+something this change introduced, and picking the fix (separate DB vs. transaction-rollback-per-test
+vs. something else) is a call worth making deliberately, not as a drive-by.

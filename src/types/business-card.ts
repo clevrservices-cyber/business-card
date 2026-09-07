@@ -9,12 +9,7 @@
 export type PhoneType = "mobile" | "direct" | "office" | "home" | "fax" | "other";
 
 export type SocialPlatform =
-  | "linkedin"
-  | "x"
-  | "facebook"
-  | "instagram"
-  | "github"
-  | "other";
+  "linkedin" | "x" | "facebook" | "instagram" | "skype" | "whatsapp" | "wechat" | "telegram";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
@@ -62,6 +57,12 @@ export interface QrCodeEntry {
   side?: CardSide | undefined;
 }
 
+export interface ActionItem {
+  id: string;
+  description?: string | undefined;
+  deadline?: string | undefined; // ISO date "YYYY-MM-DD"
+}
+
 export interface ContactData {
   first_name?: string | undefined;
   middle_name?: string | undefined;
@@ -77,6 +78,11 @@ export interface ContactData {
   address: PostalAddress;
   social_links: SocialLink[];
   qr_codes: QrCodeEntry[];
+  contact_event?: string | undefined;
+  event_date?: string | undefined;
+  tags: string[];
+  connection_description?: string | undefined;
+  actions: ActionItem[];
   notes?: string | undefined;
 }
 

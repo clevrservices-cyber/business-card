@@ -21,7 +21,8 @@ Determine which text represents:
 - websites
 - postal address (street, building, suite, floor, city, state/province, postal code, country) —
   follow the card's own local format; do not force it into a Western template
-- social media handles/URLs (LinkedIn, X/Twitter, Facebook, Instagram, GitHub, other)
+- social media / messaging handles (LinkedIn, X/Twitter, Facebook, Instagram, Skype, WhatsApp,
+  WeChat, Telegram)
 - any other printed text worth keeping as a note
 
 Preserve names, company names, URLs, phone numbers and addresses EXACTLY as printed — do not
@@ -116,7 +117,7 @@ export const CONTACT_TOOL_SCHEMA = {
               properties: {
                 platform: {
                   type: "string",
-                  enum: ["linkedin", "x", "facebook", "instagram", "github", "other"],
+                  enum: ["linkedin", "x", "facebook", "instagram", "skype", "whatsapp", "wechat", "telegram"],
                 },
                 value: { type: "string" },
               },

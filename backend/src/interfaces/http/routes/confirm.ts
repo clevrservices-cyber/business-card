@@ -25,8 +25,26 @@ confirmRouter.post("/api/business-card/confirm", async (req: Request, res: Respo
     [scanId ?? null, JSON.stringify(contact), corrections ? JSON.stringify(corrections) : null],
   );
 
+  await Promise.all([
+    contact.contact_event ? upsertContactEvent(contact.contact_event) : Promise.resolve(),
+    contact.tags?.length ? upsertTags(contact.tags) : Promise.resolve(),
+  ]);
+
   res.json({ success: true, id: rows[0]?.id });
 });
+
+/** Reusable-dropdown lookup: create on first use, silently reuse on a case-insensitive match. */
+async function upsertContactEvent(name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  await query(`INSERT INTO contact_events (name) VALUES ($1) ON CONFLICT (lower(name)) DO NOTHING`, [trimmed]);
+}
+
+async function upsertTags(names: string[]): Promise<void> {
+  const trimmed = [...new Set(names.map((n) => n.trim()).filter(Boolean))];
+  if (trimmed.length === 0) return;
+  await query(`INSERT INTO tags (name) SELECT unnest($1::text[]) ON CONFLICT (lower(name)) DO NOTHING`, [trimmed]);
+}
 
 /** A shallow field-level diff against the scan's own extraction, for future "frequently misread fields" analysis. */
 async function diffAgainstScan(
